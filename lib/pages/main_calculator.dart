@@ -2,6 +2,8 @@ import 'package:easy_scaffold/easy_scaffold.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:super_calculator/theme/theme_provider.dart';
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
@@ -218,31 +220,32 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            CustomText(
-              text: 'Super Calculator',
-              fontSize: 20,
-            ),
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.history,
                   color: colorLightButtonPrimary,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 20,
                 ),
-                Icon(Icons.currency_exchange),
-                SizedBox(
+                const Icon(Icons.currency_exchange),
+                const SizedBox(
                   width: 20,
                 ),
-                Icon(Icons.straighten),
-                SizedBox(
+                const Icon(Icons.straighten),
+                const SizedBox(
                   width: 20,
                 ),
-                Icon(Icons.dark_mode),
+                InkWell(
+                    onTap: () {
+                      Provider.of<ThemeProvider>(context, listen: false)
+                          .toggleTheme();
+                    },
+                    child: const Icon(Icons.dark_mode)),
               ],
             )
           ],
@@ -260,6 +263,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 child: CustomText(
                   fontFamily: 'Poppins',
                   text: _input,
+                  color: Theme.of(context).colorScheme.primary,
                   fontSize: 48,
                 ),
               ),
@@ -267,7 +271,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ),
           // Tombol-tombol kalkulator
           Container(
-            color: colorWhite,
+            color: Theme.of(context).colorScheme.background,
             child: Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20),
@@ -343,8 +347,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget _buildButton(String buttonText) {
     return ButtonWidget(
       borderRadius: 20,
-      backGroundColor: const Color.fromARGB(255, 255, 255, 255),
-      borderColor: colorWhite,
+      backGroundColor: Theme.of(context).colorScheme.background,
+      borderColor: Theme.of(context).colorScheme.background,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
       onPressed: () async {
         _onButtonPressed(buttonText);
@@ -353,7 +357,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         text: buttonText,
         fontSize: 32,
         fontWeight: FontWeight.w700,
-        color: colorLightTextPrimary,
+        color: Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -362,8 +366,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget _buildButtonIcon(String buttonText) {
     return ButtonWidget(
       borderRadius: 15,
-      backGroundColor: colorLightButtonPrimary,
-      borderColor: colorWhite,
+      backGroundColor: Theme.of(context).colorScheme.primary,
+      borderColor: Theme.of(context).colorScheme.background,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       onPressed: () {
         _onButtonPressed(buttonText);
@@ -380,8 +384,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget _buildButtonIcon2(String buttonText) {
     return ButtonWidget(
       borderRadius: 15,
-      backGroundColor: colorLightButtonSecondary,
-      borderColor: colorWhite,
+      backGroundColor: Theme.of(context).colorScheme.onPrimary,
+      borderColor: Theme.of(context).colorScheme.background,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       onPressed: () {
         _onButtonPressed(buttonText);
@@ -390,7 +394,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         fontFamily: 'Poppins',
         text: buttonText,
         fontSize: 32,
-        color: colorLightTextSecondary,
+        color: Theme.of(context).colorScheme.secondary,
       ),
     );
   }
@@ -398,8 +402,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget _buildButtonIcon3(String buttonText) {
     return ButtonWidget(
       borderRadius: 15,
-      backGroundColor: colorWhite,
-      borderColor: colorWhite,
+      backGroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+      borderColor: Theme.of(context).colorScheme.background,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       onPressed: () {
         _onButtonPressed(buttonText);
@@ -409,7 +413,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         text: buttonText,
         fontSize: 32,
         fontWeight: FontWeight.w500,
-        color: const Color(0xff858585),
+        color: Theme.of(context).colorScheme.onSecondary,
       ),
     );
   }
