@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:easy_scaffold/easy_scaffold.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:super_calculator/pages/main_calculator.dart';
 import 'package:provider/provider.dart';
 import 'package:super_calculator/theme/theme_provider.dart';
 
-void main() {
+void main() async {
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),

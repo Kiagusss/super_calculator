@@ -10,7 +10,8 @@ ThemeData lightMode = ThemeData(
         onPrimaryContainer: colorLightButtonPrimary,
         onPrimary: colorLightButtonSecondary,
         onSecondary: colorLightTextGrey,
-        onSecondaryContainer: colorWhite));
+        onSecondaryContainer: colorBgGrey,
+        surfaceTint: Colors.white));
 
 ThemeData darkMode = ThemeData(
     brightness: Brightness.dark,
@@ -21,4 +22,5 @@ ThemeData darkMode = ThemeData(
         onPrimaryContainer: colorDarkButtonPrimary,
         onPrimary: colorDarkButtonSecondary,
         onSecondary: colorDarkTextGrey,
-        onSecondaryContainer: colorDarkButtonGrey));
+        onSecondaryContainer: const Color(0xff222831),
+        surfaceTint: const Color(0xff181818)));
