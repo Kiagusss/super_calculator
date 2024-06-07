@@ -287,8 +287,8 @@ class _CurrencyPageState extends State<CurrencyPage> {
       setState(() {
         convertedAmount = converted!.toStringAsFixed(2);
         selectedCurrency =
-            selectedCountry2!.currency; // Update selected currency
-        _isLoading = false; // Sembunyikan loading setelah selesai
+            selectedCountry2!.currency;
+        _isLoading = false;
       });
     }
   }

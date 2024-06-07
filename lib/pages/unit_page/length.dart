@@ -235,12 +235,11 @@ class _LengthPageState extends State<LengthPage> {
     return double.parse(operators.first);
   }
 
-  // Function untuk menghitung pangkat
+
   double _power(double base, double exponent) {
     return exponent == 0 ? 1 : base * _power(base, exponent - 1);
   }
 
-  // Function untuk mengecek apakah sebuah string adalah operator
   bool _isOperator(String value) {
     return value == '+' ||
         value == '-' ||
@@ -250,17 +249,17 @@ class _LengthPageState extends State<LengthPage> {
         value == '^';
   }
 
-  // Function untuk mengecek apakah sebuah operator memiliki prioritas lebih tinggi
+
   bool _hasHigherPrecedence(String op1, String op2) {
     if (op1 == '^') {
-      return true; // Operator pangkat memiliki prioritas tertinggi
+      return true;
     } else if ((op1 == '×' || op1 == '÷') && (op2 == '+' || op2 == '-')) {
       return true;
     }
     return false;
   }
 
-  // Function untuk mengecek apakah sebuah string adalah angka
+  
   bool _isNumeric(String str) {
     try {
       double.parse(str);
@@ -304,14 +303,14 @@ class _LengthPageState extends State<LengthPage> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.onSecondaryContainer,
                     borderRadius:
-                        BorderRadius.circular(10), // Ubah sesuai kebutuhan
+                        BorderRadius.circular(10), 
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2), // Warna bayangan
-                        spreadRadius: 5, // Radius penyebaran bayangan
-                        blurRadius: 3, // Radius blur bayangan
+                        color: Colors.grey.withOpacity(0.2), 
+                        spreadRadius: 5, 
+                        blurRadius: 3, 
                         offset: const Offset(
-                            0, 3), // Offset bayangan dari container
+                            0, 3), 
                       ),
                     ],
                   ),

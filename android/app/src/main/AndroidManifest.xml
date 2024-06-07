@@ -12,6 +12,8 @@
 
     <!-- Izin untuk mengelola akses eksternal storage (diperlukan di Android 10+ untuk mengakses semua file) -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
 
     <application
         android:label="super_calculator"

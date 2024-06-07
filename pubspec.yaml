@@ -48,6 +48,9 @@ dependencies:
   dio: ^5.4.3+1
   cached_network_image: ^3.3.1
   shimmer: ^3.0.0
+  local_auth: ^2.2.0
+  file_picker: ^8.0.2
+ 
 
 dev_dependencies:
   flutter_test:

@@ -13,8 +13,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:super_calculator/pages/currency_page.dart';
+import 'package:super_calculator/pages/hidde_page.dart';
 import 'package:super_calculator/pages/unit_page/unit_page.dart';
 import 'package:super_calculator/theme/theme_provider.dart';
+import 'package:local_auth/local_auth.dart';
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
@@ -24,14 +26,18 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
+  final LocalAuthentication _localAuthentication = LocalAuthentication();
+  bool _isAuthenticating = false;
   String _input = '0';
   String _lastButtonPressed = '';
   final List<String> _history = [];
   bool _isExpressionValid = false;
   bool _historyPage = false;
   void _addToHistory(String expression) {
+    String timestamp = DateTime.now().toString(); // Get current timestamp
     setState(() {
-      _history.add(expression);
+      _history
+          .add('$expression, $timestamp'); // Append expression and timestamp
       _saveHistoryToPrefs(_history);
     });
   }
@@ -45,51 +51,90 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       GlobalKey<ScaffoldMessengerState>();
 
   Future<void> saveToCSV(List<List<dynamic>> rows) async {
-    // Memeriksa dan meminta izin penyimpanan jika diperlukan
-    if (Platform.isAndroid) {
-      final status = await Permission.storage.request();
-      if (status != PermissionStatus.granted) {
-        // Izin tidak diberikan, tangani sesuai kebutuhan
-        return;
-      }
+    List<List<dynamic>> rowsWithTimestamp = [];
+    for (var row in rows) {
+      String expression = row[0];
+      String timestamp = row.length > 1 ? row[1] : '';
+      rowsWithTimestamp
+          .add([expression, timestamp]); // Include timestamp in each row
     }
 
-    // Mendapatkan direktori "Download" pada penyimpanan eksternal
+    // Prepare CSV data
+    List<List<dynamic>> rowsWithHeaders = [
+      ['Hasil Perhitungan', 'Waktu Perhitungan']
+    ];
+    rowsWithHeaders.addAll(rows);
+    String csv = const ListToCsvConverter().convert(rowsWithHeaders);
+
+    // Obtain the directory path
     Directory? directory = await getExternalStorageDirectory();
     if (directory != null) {
       String downloadPath = "${directory.path}/Download";
-      // Membuat direktori jika belum ada
       final dir = Directory(downloadPath);
       if (!(await dir.exists())) {
         await dir.create(recursive: true);
       }
 
-      // Mendapatkan path file CSV
+      // Get CSV file path
       final path = '$downloadPath/calculator_history.csv';
-
-      // Membuka file untuk penulisan
       File file = File(path);
-      String csv = const ListToCsvConverter().convert(rows);
 
-      // Menulis data ke file
+      // Write data to the CSV file
       await file.writeAsString(csv);
+
+      // Show a snackbar to indicate successful export
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: CustomText(
-            text: 'Data berhasil disimpan ke file CSV: $path',
-            fontWeight: FontWeight.w800,
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.background,
-          ),
+          content: Text('Data successfully exported to CSV: $path'),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     } else {
-      print('Tidak dapat mengakses direktori penyimpanan eksternal.');
+      print('Failed to access external storage directory.');
     }
   }
 
   // Function untuk menangani input tombol
+  Future<void> _authenticateUser() async {
+    if (_isAuthenticating) {
+      try {
+        await _localAuthentication.authenticate(
+          localizedReason: 'Use biometric to turn off your biometric',
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+          ),
+        );
+
+        setState(() {
+          _isAuthenticating = false;
+        });
+      } on PlatformException catch (e) {
+        if (e.message != "Authentication canceled.") {}
+
+        return;
+      }
+    } else {
+      await _localAuthentication
+          .authenticate(
+        localizedReason: 'Authorize your biometric',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+        ),
+      )
+          .then((value) async {
+        if (value) {
+          setState(() {
+            _isAuthenticating = true;
+          });
+          openPage(const HiddenPage(), context);
+          setState(() {
+            _isAuthenticating = false;
+          });
+        }
+      });
+    }
+  }
+
   void _onButtonPressed(String buttonText) {
     setState(() {
       if (buttonText == 'C') {
@@ -104,6 +149,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           _input = _removeTrailingZero(_input);
           if (_lastButtonPressed != '=') {
             _addToHistory('$expression = $_input');
+          }
+          if (_input == '911') {
+            // Lakukan verifikasi biometrik
+            _authenticateUser();
           }
         }
       } else if (buttonText == '⌫') {
@@ -568,7 +617,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                                         rows.add([expression]);
                                       }
                                       // Menyimpan data ke file CSV
-                                      await saveToCSV(rows);
+                                      await saveToCSV(_history
+                                          .map((entry) => entry.split(','))
+                                          .toList());
                                     },
                                     child: Row(
                                       children: [
@@ -589,11 +640,55 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                                         )
                                       ],
                                     ),
-                                  )
+                                  ),
+                                  ButtonWidget(
+                                    backGroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .background,
+                                    borderColor: Theme.of(context)
+                                        .colorScheme
+                                        .background,
+                                    borderRadius: 10,
+                                    padding: const EdgeInsets.all(10),
+                                    onPressed: () {
+                                      setState(() {
+                                        _history
+                                            .clear(); // Menghapus semua riwayat perhitungan
+                                        _saveHistoryToPrefs(
+                                            _history); // Simpan perubahan ke SharedPreferences
+                                      });
+                                    },
+                                    child: const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete_outline,
+                                          size: 25,
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
-                              const SizedBox(
-                                height: 15,
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    CustomText(
+                                      text: "Hasil Perhitungan",
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      fontSize: 15,
+                                    ),
+                                    CustomText(
+                                      text: "Waktu Perhitungan",
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      fontSize: 15,
+                                    ),
+                                  ],
+                                ),
                               ),
                               RawScrollbar(
                                 thumbColor: Theme.of(context)
@@ -601,31 +696,46 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                                     .secondaryContainer,
                                 thickness: 3,
                                 child: SizedBox(
-                                  height: 350,
+                                  height: 337,
                                   child: ListView.builder(
                                     shrinkWrap: true,
                                     reverse: false,
                                     itemCount: _history.length,
                                     itemBuilder: (context, index) {
-                                      return Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                right: 20.0),
-                                            child: CustomText(
-                                              fontSize: 23,
-                                              text: _history[index],
+                                      List<String> historyEntry =
+                                          _history[index].split(', ');
+                                      String expression = historyEntry[0];
+                                      String timestamp = historyEntry[1];
+                                      DateTime dateTime =
+                                          DateTime.parse(timestamp);
+                                      String formattedTime =
+                                          '${dateTime.year}-${dateTime.month}-${dateTime.day}, ${dateTime.hour}:${dateTime.minute}:${dateTime.second}';
+
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: CustomText(
+                                                fontSize: 23,
+                                                text: expression,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                              ),
+                                            ),
+                                            CustomText(
+                                              fontSize: 15,
+                                              text: formattedTime,
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .primary,
                                             ),
-                                          ),
-                                          const SizedBox(
-                                            height: 10,
-                                          )
-                                        ],
+                                          ],
+                                        ),
                                       );
                                     },
                                   ),
